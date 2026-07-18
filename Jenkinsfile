@@ -36,8 +36,8 @@ pipeline {
         stage('ECR Login & Push') {
             steps {
                 sh """
-                    aws ecr get-login-password --region ${AWS_REGION} | \
-                    docker login --username AWS --password-stdin ${ECR_REPO}
+                    LOGIN_PASSWORD=\$(docker run --rm amazon/aws-cli ecr get-login-password --region ${AWS_REGION})
+                    echo \$LOGIN_PASSWORD | docker login --username AWS --password-stdin ${ECR_REPO}
 
                     docker push ${ECR_REPO}:${IMAGE_TAG_V}
                     docker push ${ECR_REPO}:${GIT_COMMIT}
