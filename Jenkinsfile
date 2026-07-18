@@ -79,6 +79,26 @@ pipeline {
                 }
 	    }
         }
+	stage('Update Manifest & Push') {
+	    steps {
+	   	withCredentials([usernamePassword(
+		    credentialsId: 'github-token',
+		    usernameVariable: 'GIT_USER',
+		    passwordVariable: 'GIT_TOKEN'
+		)]) {
+		    sh """
+			git config user.email "jenkins@petclinic.local"
+			git config user.name "jenkins-ci"
+
+			sed -i "s|image: .*user06-petclinic:.*|image: ${ECR_REPO}:${IMAGE_TAG_V}|" k8s/02_deployment.yaml
+
+			git add k8s/02_deployment.yaml
+			git commit -m "Update image tag to ${IMAGE_TAG_V} [ci skip]" || echo "No change to commit"
+			git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/sohee0412/user06-petclinic-cicd.git main
+		    """
+		}
+	    }
+	}
     }
 
     post {
