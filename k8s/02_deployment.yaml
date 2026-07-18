@@ -30,5 +30,5 @@ spec:
         - name: MYSQL_USER
           value: admin
 
-        - name: MYSQL_PASSWORD
+        - name: MYSQL_PASS
           value: admin123!
