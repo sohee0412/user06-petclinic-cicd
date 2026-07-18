@@ -35,14 +35,22 @@ pipeline {
 
         stage('ECR Login & Push') {
             steps {
-                sh """
-                    LOGIN_PASSWORD=\$(docker run --rm -e AWS_PROFILE=user06 -v /home/ec2-user/.aws:/root:ro amazon/aws-cli ecr get-login-password --region ${AWS_REGION})
-                    echo \$LOGIN_PASSWORD | docker login --username AWS --password-stdin ${ECR_REPO}
+                withCredentials([
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        LOGIN_PASSWORD=\$(docker run --rm \
+                          -e AWS_ACCESS_KEY_ID=\$AWS_ACCESS_KEY_ID \
+                          -e AWS_SECRET_ACCESS_KEY=\$AWS_SECRET_ACCESS_KEY \
+                          amazon/aws-cli ecr get-login-password --region ${AWS_REGION})
+                        echo \$LOGIN_PASSWORD | docker login --username AWS --password-stdin ${ECR_REPO}
 
-                    docker push ${ECR_REPO}:${IMAGE_TAG_V}
-                    docker push ${ECR_REPO}:${GIT_COMMIT}
-                """
-            }
+                        docker push ${ECR_REPO}:${IMAGE_TAG_V}
+                        docker push ${ECR_REPO}:${GIT_COMMIT}
+                    """
+                }
+	    }
         }
     }
 
