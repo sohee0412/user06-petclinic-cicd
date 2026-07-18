@@ -23,6 +23,19 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        ./mvnw sonar:sonar \
+                          -Dsonar.host.url=http://10.6.0.43:9000 \
+                          -Dsonar.login=\$SONAR_TOKEN \
+                          -Dsonar.projectKey=user06-petclinic
+                    """
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 script {
@@ -30,6 +43,20 @@ pipeline {
                         docker build -t ${ECR_REPO}:${IMAGE_TAG_V} -t ${ECR_REPO}:${GIT_COMMIT} .
                     """
                 }
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                sh """
+                    docker run --rm \
+                      -v /var/run/docker.sock:/var/run/docker.sock \
+                      -v \$HOME/.cache/trivy:/root/.cache/ \
+                      aquasec/trivy:latest image \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 0 \
+                      ${ECR_REPO}:${IMAGE_TAG_V}
+                """
             }
         }
 
