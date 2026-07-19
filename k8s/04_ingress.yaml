@@ -6,7 +6,9 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: instance
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-1:450444046629:certificate/56e650d6-33e3-401b-a471-4efbe20f5d92"
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
 spec:
   ingressClassName: alb
   rules:
